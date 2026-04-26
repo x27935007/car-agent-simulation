@@ -1,0 +1,5 @@
+# 该项目目前仅依赖 Python 3.x 标准库
+# 如果后续需要扩展功能（如绘图或更复杂的 API），可以添加以下依赖：
+# numpy
+# matplotlib
+# flask

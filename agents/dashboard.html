@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>熵稳定仿真系统 - 商业化版</title>
+    <style>
+        body{font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#0f172a;color:#f8fafc;}
+        .container{max-width:1000px;margin:40px auto;padding:0 20px;}
+        .panel{background:#1e293b;padding:24px;border-radius:16px;margin-bottom:24px;box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);border: 1px solid #334155;}
+        .panel h2{margin-top:0;color:#38bdf8;font-size:1.5rem;font-weight: 600;margin-bottom: 16px;display: flex; align-items: center; gap: 8px;}
+        #entropyChartContainer{height:320px;width:100%;margin-top: 10px;}
+        .btn{background:#0284c7;color:white;border:none;padding:12px 28px;border-radius:10px;font-size:16px;font-weight: 600;cursor:pointer;transition: all 0.2s ease;}
+        .btn:hover{background:#0369a1;transform: translateY(-1px);}
+        .btn:active{transform: translateY(0px);}
+        #result{background:#0f172a;padding:16px;border-radius:12px;border: 1px solid #334155;line-height: 1.6;font-family: 'Cascadia Code', Consolas, monospace;color: #94a3b8; white-space: pre-wrap;}
+        .stats-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;}
+        .stat-card {background: #334155; padding: 16px; border-radius: 12px; text-align: center;}
+        .stat-label {font-size: 0.875rem; color: #94a3b8; margin-bottom: 4px;}
+        .stat-value {font-size: 1.25rem; font-weight: 700; color: #f1f5f9;}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h2>⚙️ 系统控制面板</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">用户总数</div><div class="stat-value">10,000</div></div>
+                <div class="stat-card"><div class="stat-label">KOL 数量</div><div class="stat-value">20</div></div>
+                <div class="stat-card"><div class="stat-label">运行状态</div><div id="statusVal" class="stat-value" style="color: #94a3b8;">待命</div></div>
+            </div>
+            <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动仿真</button>
+        </div>
+
+        <div class="panel">
+            <h2>📈 实时熵值趋势</h2>
+            <div id="entropyChartContainer">
+                <canvas id="entropyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>📋 仿真洞察报告</h2>
+            <div id="result">等待数据输入...</div>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+        let entropyHistory = [];
+        let running = false;
+        let interval;
+
+        // 初始化图表
+        function initChart() {
+            const ctx = document.getElementById('entropyChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '系统熵值 (Entropy)',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function toggleSimu() {
+            if (running) {
+                await stopSimu();
+            } else {
+                await startSimu();
+            }
+        }
+
+        async function startSimu(){
+            try {
+                const response = await fetch('/api/start');
+                if (!response.ok) throw new Error('Failed to start simulation');
+                
+                running = true;
+                document.getElementById("ctrlBtn").innerText = "停止仿真";
+                document.getElementById("statusVal").innerText = "运行中";
+                document.getElementById("statusVal").style.color = "#22c55e";
+                document.getElementById("result").innerText = "正在实时同步后端仿真引擎数据...";
+                
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
+                
+                // 开始轮询状态
+                pollStatus();
+            } catch (err) {
+                console.error(err);
+                alert("启动失败: " + err.message);
+            }
+        }
+
+        async function pollStatus() {
+            if (!running) return;
+
+            try {
+                const response = await fetch('/api/status?t=' + Date.now());
+                const data = await response.json();
+                console.log("Poll Data:", data);
+
+                if (data.step > 0) {
+                    // 更新图表
+                    chart.data.labels.push(data.step);
+                    chart.data.datasets[0].data.push(data.entropy);
+                    if (chart.data.labels.length > 50) {
+                        chart.data.labels.shift();
+                        chart.data.datasets[0].data.shift();
+                    }
+                    chart.update('none');
+
+                    // 更新报告（如果稳定了）
+                    if (data.is_stable) {
+                        stopSimu(true, data); // 传递 data 以便获取报告
+                        return;
+                    }
+                }
+
+                if (running) {
+                    setTimeout(pollStatus, 200); // 200ms 轮询一次
+                }
+            } catch (err) {
+                console.error("轮询失败:", err);
+            }
+        }
+
+        async function stopSimu(isAuto = false, data = null) {
+            running = false;
+            try {
+                await fetch('/api/stop');
+            } catch (err) {
+                console.error("停止请求失败:", err);
+            }
+
+            document.getElementById("ctrlBtn").innerText = "启动仿真";
+            document.getElementById("statusVal").innerText = isAuto ? "已完成" : "已停止";
+            document.getElementById("statusVal").style.color = isAuto ? "#38bdf8" : "#f43f5e";
+            
+            if (isAuto && data && data.report) {
+                const report = data.report;
+                document.getElementById("result").innerText = 
+                "✅ 仿真引擎报告：系统已达到动态平衡\n\n" +
+                "【核心洞察】\n" +
+                "1. 必做配置: " + report.must_have.join("、") + "\n" +
+                "2. 风险预警: " + report.risk.join(" | ") + "\n" +
+                "3. 推荐KOL类型: " + report.kol_best.join("、") + "\n" +
+                "4. 竞品状态: " + (report.competitor_status === 'attack' ? '正在发动攻击' : '正常竞争');
+            } else if (isAuto) {
+                document.getElementById("result").innerText = "✅ 仿真完成，但未获取到详细报告。";
+            }
+        }
+
+        window.onload = initChart;
+    </script>
+</body>
+</html>
