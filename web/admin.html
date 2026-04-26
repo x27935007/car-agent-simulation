@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>管理后台 - SaaS商业版</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px; }
+        .box { max-width: 800px; margin: 0 auto; padding: 30px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
+        h2 { margin-top: 0; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+        .form-group { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        input { flex: 1; padding: 12px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; outline: none; }
+        button { padding: 12px 24px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        button:hover { background: #0369a1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; font-weight: 600; }
+        .status-ok { color: #22c55e; }
+        .nav-link { color: #38bdf8; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <a href="/web/index.html" class="nav-link">← 返回看板</a>
+        <h2>管理员充值控制台</h2>
+        <div class="form-group">
+            <input id="admin_pwd" type="password" placeholder="管理员密钥">
+            <input id="target_user" placeholder="目标账号 (如 admin)">
+            <input id="money" type="number" placeholder="充值点数">
+            <button onclick="recharge()">确认充值</button>
+        </div>
+        <div id="msg" style="margin-top: 10px;"></div>
+
+        <h2 style="margin-top: 40px;">全量仿真历史记录</h2>
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>时间</th>
+                    <th>用户</th>
+                    <th>车型</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 动态加载 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function recharge() {
+            const admin_pwd = document.getElementById('admin_pwd').value;
+            const user = document.getElementById('target_user').value;
+            const money = Number(document.getElementById('money').value);
+            
+            if(!admin_pwd || !user || !money) return alert("请填写完整信息");
+
+            try {
+                let r = await fetch("/api/admin/recharge", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ admin_pwd, user, money })
+                });
+                let d = await r.json();
+                const msg = document.getElementById('msg');
+                if (d.ok) {
+                    msg.innerHTML = `<span class="status-ok">成功！用户当前余额: ${d.balance}</span>`;
+                } else {
+                    msg.innerHTML = `<span style="color: #f43f5e;">失败: ${d.msg}</span>`;
+                }
+            } catch (err) { alert("请求失败"); }
+        }
+
+        async function loadHistory() {
+            try {
+                const r = await fetch("/api/history");
+                const d = await r.json();
+                const tbody = document.querySelector('#historyTable tbody');
+                tbody.innerHTML = d.history.map(h => `
+                    <tr>
+                        <td>${h.time}</td>
+                        <td>${h.user}</td>
+                        <td>${h.model}</td>
+                        <td><span class="status-ok">已完成</span></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" style="text-align:center; color:#64748b;">暂无记录</td></tr>';
+            } catch (e) {}
+        }
+
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>

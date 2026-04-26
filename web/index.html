@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>熵稳定仿真系统 - SaaS商业版</title>
+    <title>熵稳定仿真系统 - 企业级SaaS版</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -10,7 +10,9 @@
         .user-tag { color: #38bdf8; font-weight: 600; }
         .balance-tag { color: #f59e0b; font-weight: 600; }
         .model-select { padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; margin-right: 10px; outline: none; }
-        .controls { display: flex; align-items: center; margin-top: 15px; }
+        .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .btn-outline { background: transparent; border: 1px solid #334155; color: #94a3b8; }
+        .btn-outline:hover { background: #334155; color: white; }
     </style>
 </head>
 <body>
@@ -18,7 +20,10 @@
         <div class="header-info">
             <div>账号: <span id="userDisplay" class="user-tag">—</span></div>
             <div>演示余额: <span id="balanceDisplay" class="balance-tag">—</span></div>
-            <div style="cursor: pointer;" onclick="logout()">退出登录</div>
+            <div>
+                <a href="/web/admin.html" style="color: #64748b; text-decoration: none; margin-right: 15px;">管理后台</a>
+                <span style="cursor: pointer;" onclick="logout()">退出登录</span>
+            </div>
         </div>
 
         <div class="panel">
@@ -32,7 +37,8 @@
                 <select id="carModel" class="model-select">
                     <!-- 动态加载 -->
                 </select>
-                <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动仿真 (扣除1点)</button>
+                <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动模拟 (1次/100点)</button>
+                <button class="btn btn-outline" onclick="location.href='/api/download'">下载最近报告</button>
             </div>
         </div>
 
@@ -44,7 +50,7 @@
         </div>
 
         <div class="panel">
-            <h2>📋 仿真洞察报告</h2>
+            <h2>📋 商业决策输出</h2>
             <div id="result">等待数据输入...</div>
         </div>
     </div>

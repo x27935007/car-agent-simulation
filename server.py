@@ -1,16 +1,20 @@
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, Response
 import threading
 import os
+import datetime
 from engine.simulator import SimulationEngine
 from config import PORT, SIMULATION_STEP_SECONDS
-from user_db import check_user, get_balance, cost
+from user_db import check_user, get_balance, cost, recharge
+from history import add_record, get_history
+from export_pdf import gen_pdf
 
 app = Flask(__name__)
 
-# 全局仿真引擎实例
+# 全局仿真状态
 engine = None
 simulation_thread = None
 stop_event = threading.Event()
+current_simulation_info = {}
 
 # 静态文件目录
 WEB_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
@@ -32,23 +36,41 @@ def login():
 
 @app.route("/api/start", methods=["POST"])
 def start():
-    global engine, simulation_thread, stop_event
+    global engine, simulation_thread, stop_event, current_simulation_info
     d = request.json
-    if not check_user(d.get("user"), d.get("pwd")):
+    user = d.get("user")
+    pwd = d.get("pwd")
+    model_id = d.get("model_id", "1")
+    
+    if not check_user(user, pwd):
         return jsonify(ok=0, msg="登录失败")
-    if not cost(d["user"], 1):
+    if not cost(user, 1):
         return jsonify(ok=0, msg="余额不足")
     
     if simulation_thread and simulation_thread.is_alive():
         return jsonify(ok=0, msg="仿真已在运行中")
 
+    # 获取车型名称
+    models = {
+        "1": "紧凑型家用SUV",
+        "2": "中型智能电动SUV",
+        "3": "高端豪华电动轿车"
+    }
+    model_name = models.get(str(model_id), "未知车型")
+
     engine = SimulationEngine()
+    current_simulation_info = {
+        "user": user,
+        "model_name": model_name,
+        "start_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
     stop_event.clear()
     simulation_thread = threading.Thread(target=run_simulation_loop)
     simulation_thread.daemon = True
     simulation_thread.start()
     
-    return jsonify(ok=1, status="started", balance=get_balance(d["user"]))
+    return jsonify(ok=1, status="started", balance=get_balance(user))
 
 @app.route("/api/status")
 def status():
@@ -72,12 +94,42 @@ def car_models():
         {"id": 3, "name": "高端豪华电动轿车"}
     ])
 
+@app.route("/api/history")
+def history_api():
+    return jsonify(history=get_history())
+
+@app.route("/api/download")
+def download():
+    if engine:
+        status = engine.get_status()
+        report = status.get("report")
+        if report:
+            # 补全报告信息用于打印
+            report['time'] = current_simulation_info.get("start_time")
+            report['model_name'] = current_simulation_info.get("model_name")
+            data = gen_pdf(report)
+            return Response(data, mimetype="text/plain", 
+                          headers={"Content-Disposition": f"attachment;filename=report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"})
+    return jsonify(ok=0, msg="暂无可用报告，请先完成仿真")
+
+@app.route("/api/admin/recharge", methods=["POST"])
+def admin_recharge():
+    d = request.json
+    if d.get("admin_pwd") != "admin888":
+        return jsonify(ok=0, msg="管理员权限验证失败")
+    if recharge(d.get("user"), d.get("money", 0)):
+        return jsonify(ok=1, balance=get_balance(d.get("user")))
+    return jsonify(ok=0)
+
 def run_simulation_loop():
     print("Simulation background thread started")
     while not stop_event.is_set():
         is_stable = engine.run_step()
         if is_stable:
             print("Simulation reached stability naturally")
+            # 记录到历史
+            status = engine.get_status()
+            add_record(current_simulation_info["user"], current_simulation_info["model_name"], status["report"])
             break
         import time
         time.sleep(SIMULATION_STEP_SECONDS)

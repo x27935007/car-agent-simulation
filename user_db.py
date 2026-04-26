@@ -13,3 +13,9 @@ def cost(user, num=1):
         users[user]["balance"] -= num
         return True
     return False
+
+def recharge(user, money):
+    if user not in users:
+        users[user] = {"pwd": "123456", "balance": 0, "role": "user"}
+    users[user]["balance"] += money
+    return True
