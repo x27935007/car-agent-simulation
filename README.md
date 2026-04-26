@@ -26,7 +26,7 @@ python main.py
 
 ### 3. 访问看板
 在浏览器中打开：
-[http://localhost:8003/index.html](http://localhost:8003/index.html)
+[http://localhost:8004/index.html](http://localhost:8004/index.html)
 
 ## ⚙️ 配置说明
 
