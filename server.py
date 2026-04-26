@@ -21,6 +21,10 @@ WEB_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'web')
 
 @app.route("/")
 def index():
+    return send_from_directory(WEB_DIRECTORY, "home.html")
+
+@app.route("/login")
+def login_page():
     return send_from_directory(WEB_DIRECTORY, "login.html")
 
 @app.route("/web/<path:p>")
