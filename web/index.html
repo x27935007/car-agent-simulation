@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>熵稳定仿真系统 - 商业化版</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h2>⚙️ 系统控制面板</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">用户总数</div><div class="stat-value">10,000</div></div>
+                <div class="stat-card"><div class="stat-label">KOL 数量</div><div class="stat-value">20</div></div>
+                <div class="stat-card"><div class="stat-label">运行状态</div><div id="statusVal" class="stat-value" style="color: #94a3b8;">待命</div></div>
+            </div>
+            <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动仿真</button>
+        </div>
+
+        <div class="panel">
+            <h2>📈 实时熵值趋势</h2>
+            <div id="entropyChartContainer">
+                <canvas id="entropyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>📋 仿真洞察报告</h2>
+            <div id="result">等待数据输入...</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

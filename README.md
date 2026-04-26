@@ -26,7 +26,7 @@ python main.py
 
 ### 3. 访问看板
 在浏览器中打开：
-[http://localhost:8002/dashboard.html](http://localhost:8002/dashboard.html)
+[http://localhost:8003/index.html](http://localhost:8003/index.html)
 
 ## ⚙️ 配置说明
 
@@ -39,14 +39,19 @@ python main.py
 ## 📂 项目结构
 
 ```text
-├── main.py               # 🚀 一键启动入口
-├── config.py             # ⚙️ 系统配置文件
+├── main.py               # 🚀 系统主入口
+├── server.py             # Web 服务（提供 API + 页面）
+├── config.py             # 商业化配置
 ├── requirements.txt      # 依赖清单
 ├── .gitignore            # Git 忽略配置
-└── agents/               # 核心逻辑目录
-    ├── simulation_engine.py  # 核心仿真引擎
-    ├── server.py             # API 服务器
-    └── dashboard.html        # 前端实时看板
+├── engine/               # 核心仿真引擎目录
+│   ├── agents.py         # 用户/KOL/竞品 Agent 定义
+│   ├── entropy.py        # 熵计算 + 稳定停止核心
+│   └── simulator.py      # 模拟调度引擎
+└── web/                  # 前端看板目录
+    ├── index.html        # 看板页面
+    ├── app.js            # 前端逻辑
+    └── style.css         # 界面样式
 ```
 
 ## 📊 仿真逻辑说明
