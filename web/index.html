@@ -2,12 +2,25 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>熵稳定仿真系统 - 商业化版</title>
+    <title>熵稳定仿真系统 - SaaS商业版</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: #94a3b8; font-size: 14px; background: #0f172a; padding: 10px 20px; border-radius: 10px; border: 1px solid #334155; }
+        .user-tag { color: #38bdf8; font-weight: 600; }
+        .balance-tag { color: #f59e0b; font-weight: 600; }
+        .model-select { padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155; margin-right: 10px; outline: none; }
+        .controls { display: flex; align-items: center; margin-top: 15px; }
+    </style>
 </head>
 <body>
     <div class="container">
+        <div class="header-info">
+            <div>账号: <span id="userDisplay" class="user-tag">—</span></div>
+            <div>演示余额: <span id="balanceDisplay" class="balance-tag">—</span></div>
+            <div style="cursor: pointer;" onclick="logout()">退出登录</div>
+        </div>
+
         <div class="panel">
             <h2>⚙️ 系统控制面板</h2>
             <div class="stats-grid">
@@ -15,7 +28,12 @@
                 <div class="stat-card"><div class="stat-label">KOL 数量</div><div class="stat-value">20</div></div>
                 <div class="stat-card"><div class="stat-label">运行状态</div><div id="statusVal" class="stat-value" style="color: #94a3b8;">待命</div></div>
             </div>
-            <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动仿真</button>
+            <div class="controls">
+                <select id="carModel" class="model-select">
+                    <!-- 动态加载 -->
+                </select>
+                <button class="btn" id="ctrlBtn" onclick="toggleSimu()">启动仿真 (扣除1点)</button>
+            </div>
         </div>
 
         <div class="panel">
@@ -31,5 +49,11 @@
         </div>
     </div>
     <script src="app.js"></script>
+    <script>
+        function logout() {
+            localStorage.clear();
+            location.href = "/";
+        }
+    </script>
 </body>
 </html>

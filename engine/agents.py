@@ -26,12 +26,17 @@ class KOLAgent:
         ])
         self.is_attack_competitor = random.random() < 0.3
 
+try:
+    from attack_lib import attack_messages
+except ImportError:
+    attack_messages = [
+        "刹车问题",
+        "续航虚标",
+        "智驾失灵",
+        "做工差"
+    ]
+
 class CompetitorAgent:
     def __init__(self):
         self.mode = random.choice(["normal", "attack"])
-        self.attack_msg = random.choice([
-            "刹车问题",
-            "续航虚标",
-            "智驾失灵",
-            "做工差"
-        ])
+        self.attack_msg = random.choice(attack_messages)

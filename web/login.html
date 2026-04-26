@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>仿真系统登录 - SaaS商业版</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .box { width: 100%; max-width: 400px; padding: 40px; background: #1e293b; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid #334155; }
+        h2 { margin-top: 0; color: #38bdf8; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 14px; }
+        input { width: 100%; padding: 12px; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: white; box-sizing: border-box; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: #38bdf8; }
+        button { width: 100%; padding: 14px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: #0369a1; }
+        .tips { margin-top: 20px; text-align: center; color: #64748b; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>仿真系统登录</h2>
+        <div class="form-group">
+            <label for="user">账号</label>
+            <input id="user" placeholder="演示账号: admin" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="pwd">密码</label>
+            <input id="pwd" type="password" placeholder="演示密码: admin888">
+        </div>
+        <button onclick="login()">立即登录</button>
+        <div class="tips">提示：SaaS 演示版本，每次模拟扣除 1 点余额</div>
+    </div>
+    <script>
+        async function login() {
+            const userVal = document.getElementById('user').value;
+            const pwdVal = document.getElementById('pwd').value;
+            if (!userVal || !pwdVal) {
+                alert("请输入账号和密码");
+                return;
+            }
+            try {
+                let r = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user: userVal, pwd: pwdVal })
+                });
+                let d = await r.json();
+                if (d.ok) {
+                    // 简单存储在 localStorage 中供后续请求使用
+                    localStorage.setItem('sim_user', userVal);
+                    localStorage.setItem('sim_pwd', pwdVal);
+                    location.href = "/web/index.html";
+                } else {
+                    alert("账号或密码错误");
+                }
+            } catch (err) {
+                alert("登录请求失败");
+            }
+        }
+        // 支持回车登录
+        document.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+    </script>
+</body>
+</html>
