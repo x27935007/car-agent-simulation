@@ -7,7 +7,10 @@ import os
 from urllib.parse import urlparse
 from simulation_engine import SimulationEngine, SIMULATION_STEP_SECONDS
 
-PORT = 8002
+try:
+    from config import PORT
+except ImportError:
+    PORT = 8002
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 # 全局仿真引擎实例

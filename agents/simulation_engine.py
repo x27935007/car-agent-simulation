@@ -3,11 +3,15 @@ import random
 import math
 from collections import Counter
 
-AGENT_COUNT = 10000
-KOL_COUNT = 20
-SIMULATION_STEP_SECONDS = 0.1
-ENTROPY_STOP_THRESHOLD = 0.002
-CONSECUTIVE_STABLE_STEPS = 5
+try:
+    from config import AGENT_COUNT, KOL_COUNT, SIMULATION_STEP_SECONDS, ENTROPY_STOP_THRESHOLD, CONSECUTIVE_STABLE_STEPS
+except ImportError:
+    # 默认配置（如果找不到 config.py）
+    AGENT_COUNT = 10000
+    KOL_COUNT = 20
+    SIMULATION_STEP_SECONDS = 0.1
+    ENTROPY_STOP_THRESHOLD = 0.002
+    CONSECUTIVE_STABLE_STEPS = 5
 
 class UserAgent:
     def __init__(self):

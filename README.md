@@ -21,20 +21,32 @@ cd car-agent-simulation
 ### 2. 运行服务器
 无需安装额外依赖（仅需 Python 3.7+ 标准库）：
 ```bash
-python agents/server.py
+python main.py
 ```
 
 ### 3. 访问看板
 在浏览器中打开：
 [http://localhost:8002/dashboard.html](http://localhost:8002/dashboard.html)
 
+## ⚙️ 配置说明
+
+你可以通过修改根目录下的 `config.py` 来调整仿真参数：
+- `AGENT_COUNT`: 模拟的用户总数。
+- `KOL_COUNT`: KOL 的数量。
+- `ENTROPY_STOP_THRESHOLD`: 熵稳定判定的阈值。
+- `PORT`: Web 服务的端口号。
+
 ## 📂 项目结构
 
 ```text
-agents/
-├── simulation_engine.py  # 核心仿真引擎 (User/KOL/Competitor Agent 逻辑)
-├── server.py             # 基于标准库的轻量级 API 服务器
-└── dashboard.html        # 前端实时看板 (HTML/JS/Chart.js)
+├── main.py               # 🚀 一键启动入口
+├── config.py             # ⚙️ 系统配置文件
+├── requirements.txt      # 依赖清单
+├── .gitignore            # Git 忽略配置
+└── agents/               # 核心逻辑目录
+    ├── simulation_engine.py  # 核心仿真引擎
+    ├── server.py             # API 服务器
+    └── dashboard.html        # 前端实时看板
 ```
 
 ## 📊 仿真逻辑说明
